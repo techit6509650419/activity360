@@ -13,9 +13,9 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, debian-latest, centos-latest]
+        os: [ubuntu-latest, centos-latest] # เปลี่ยน debian-latest เป็น ubuntu-latest
         node-version: [18, 20, 22]
-    
+
     steps:
       - name: Check out code
         uses: actions/checkout@v2
@@ -27,7 +27,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          if [ ${{ matrix.os }} == 'ubuntu-latest' ] || [ ${{ matrix.os }} == 'debian-latest' ]; then
+          if [ ${{ matrix.os }} == 'ubuntu-latest' ]; then
             npm ci
           else
             sudo yum install -y nodejs npm
