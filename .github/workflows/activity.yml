@@ -1,4 +1,4 @@
-name: Node.js CI
+name: activity
 
 on:
   push:
@@ -6,33 +6,32 @@ on:
   pull_request:
     branches: [ main ]
 
-
 jobs:
   test:
     runs-on: ubuntu-latest  # ใช้ runner ที่มีอยู่
     strategy:
       matrix:
-        os: [debian-latest, centos-latest, ubuntu-latest]  # รวม OS ที่ต้องการทดสอบ
+        os: [ubuntu-latest, debian:latest, centos:latest]  # รวม OS ที่ต้องการทดสอบ
         node-version: [18, 20, 22]
 
     steps:
       - name: Check out code
         uses: actions/checkout@v4  # ตรวจสอบโค้ดจาก repository
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ matrix.node-version }}  # ตั้งค่าเวอร์ชัน Node.js ตามที่ระบุใน matrix
-          cache: 'npm'  # ใช้ cache สำหรับ npm เพื่อเพิ่มประสิทธิภาพ
-
-      - name: Install dependencies
+      - name: Set up Node.js in Docker
         run: |
-          if [[ "${{ matrix.os }}" == "ubuntu-latest" || "${{ matrix.os }}" == "debian-latest" ]]; then
-            npm ci  # ติดตั้ง dependencies สำหรับ Ubuntu และ Debian
-          else
-            sudo yum install -y nodejs npm  # ติดตั้ง Node.js และ npm สำหรับ CentOS
-            npm ci  # ติดตั้ง dependencies หลังจากติดตั้ง Node.js
-          fi
+          docker run --rm -v ${{ github.workspace }}:/app -w /app ${matrix.os} /bin/sh -c "
+            curl -fsSL https://deb.nodesource.com/setup_${{ matrix.node-version }}.x | bash - &&
+            apt-get install -y nodejs npm &&  # สำหรับ Ubuntu และ Debian
+            npm ci &&  # ติดตั้ง dependencies
+            npm test   # รัน test suite
+          "
 
-      - name: Run tests
-        run: npm test  # รัน test suite เพื่อตรวจสอบความถูกต้องของแอปพลิเคชัน
+      - name: Install Node.js and Run Tests on CentOS
+        if: startsWith(matrix.os, 'centos')
+        run: |
+          docker run --rm -v ${{ github.workspace }}:/app -w /app centos:latest /bin/sh -c "
+            yum install -y nodejs npm &&  # ติดตั้ง Node.js และ npm สำหรับ CentOS
+            npm ci &&  # ติดตั้ง dependencies
+            npm test   # รัน test suite
+          "
