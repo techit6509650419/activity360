@@ -12,7 +12,7 @@ jobs:
     
     strategy:
       matrix:
-        os: [debian-latest, centos-latest]  # ระบบปฏิบัติการที่ต้องการทดสอบ
+        os: [debian-11, centos-latest]  # ระบบปฏิบัติการที่ต้องการทดสอบ
         node-version: [18.x, 20.x, 22.x]  # เวอร์ชันของ Node.js ที่ต้องการทดสอบ
 
     steps:
