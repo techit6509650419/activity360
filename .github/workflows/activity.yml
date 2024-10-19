@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest  # ใช้ runner ที่มีอยู่
     strategy:
       matrix:
-        os: [ubuntu-latest, debian:latest, centos:latest]  # รวม OS ที่ต้องการทดสอบ
+        os: [ubuntu, debian, centos]  # ใช้ชื่อที่ไม่มี colon
         node-version: [18, 20, 22]
 
     steps:
@@ -20,18 +20,22 @@ jobs:
 
       - name: Set up Node.js in Docker
         run: |
-          docker run --rm -v ${{ github.workspace }}:/app -w /app ${matrix.os} /bin/sh -c "
-            curl -fsSL https://deb.nodesource.com/setup_${{ matrix.node-version }}.x | bash - &&
-            apt-get install -y nodejs npm &&  # สำหรับ Ubuntu และ Debian
-            npm ci &&  # ติดตั้ง dependencies
-            npm test   # รัน test suite
-          "
-
-      - name: Install Node.js and Run Tests on CentOS
-        if: startsWith(matrix.os, 'centos')
-        run: |
-          docker run --rm -v ${{ github.workspace }}:/app -w /app centos:latest /bin/sh -c "
-            yum install -y nodejs npm &&  # ติดตั้ง Node.js และ npm สำหรับ CentOS
-            npm ci &&  # ติดตั้ง dependencies
-            npm test   # รัน test suite
-          "
+          if [ "${{ matrix.os }}" = "ubuntu" ]; then
+            docker run --rm -v ${{ github.workspace }}:/app -w /app node:${{ matrix.node-version }} /bin/sh -c "
+              npm ci && npm test  # ติดตั้ง dependencies และรัน test suite
+            "
+          elif [ "${{ matrix.os }}" = "debian" ]; then
+            docker run --rm -v ${{ github.workspace }}:/app -w /app debian:latest /bin/sh -c "
+              apt-get update && apt-get install -y curl && \
+              curl -fsSL https://deb.nodesource.com/setup_${{ matrix.node-version }}.x | bash - && \
+              apt-get install -y nodejs && \
+              npm ci && npm test  # ติดตั้ง Node.js และรัน test suite
+            "
+          elif [ "${{ matrix.os }}" = "centos" ]; then
+            docker run --rm -v ${{ github.workspace }}:/app -w /app centos:latest /bin/sh -c "
+              yum install -y curl && \
+              curl -fsSL https://rpm.nodesource.com/setup_${{ matrix.node-version }}.x | bash - && \
+              yum install -y nodejs && \
+              npm ci && npm test  # ติดตั้ง Node.js และรัน test suite
+            "
+          fi
