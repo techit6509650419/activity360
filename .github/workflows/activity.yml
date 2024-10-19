@@ -8,16 +8,16 @@ on:
 
 jobs:
   build:
-    runs-on: debian-latest
+    runs-on: ${{ matrix.os }}
 
     strategy:
       matrix:
-        node-version: [18.x, 20.x, 22.x]
-        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
+        os: [ubuntu-latest, debian-latest, centos-latest] # Specify your desired Linux distributions
+        node-version: [18.x, 20.x, 22.x]  # Specify Node.js versions
 
     steps:
     - uses: actions/checkout@v4
-    - name: Use Node.js ${{ matrix.node-version }}
+    - name: Set up Node.js ${{ matrix.node-version }} on ${{ matrix.os }}
       uses: actions/setup-node@v4
       with:
         node-version: ${{ matrix.node-version }}
