@@ -8,34 +8,48 @@ on:
 
 jobs:
   build:
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest  # Use Ubuntu for the main job
 
     strategy:
       matrix:
-        os: [ubuntu-latest, debian-latest, centos-latest]  # Define your Linux distributions
-        node-version: [18.x, 20.x, 22.x]                  # Define your Node.js versions
+        os: [ubuntu, debian, centos]  # Specify the OS types
+        node-version: [18.x, 20.x, 22.x]  # Specify Node.js versions
 
     steps:
       - name: Check out the code
         uses: actions/checkout@v4
-        
-      - name: Set up Node.js ${{ matrix.node-version }}
+
+      - name: Set up Node.js for Ubuntu
+        if: matrix.os == 'ubuntu'
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
-          
-      - name: Install dependencies
+
+      - name: Install dependencies for Ubuntu
+        if: matrix.os == 'ubuntu'
         run: npm ci
-        
-      - name: Run tests
+
+      - name: Run tests for Ubuntu
+        if: matrix.os == 'ubuntu'
         run: npm test
-        
-      - name: Debug information
+
+      - name: Install dependencies for Debian
+        if: matrix.os == 'debian'
         run: |
-          echo "Node version:"
-          node --version
-          echo "NPM version:"
-          npm --version
-          echo "Current OS:"
-          uname -a
+          docker run -v ${{ github.workspace }}:/workspace -w /workspace node:${{ matrix.node-version }} npm install
+
+      - name: Run tests for Debian
+        if: matrix.os == 'debian'
+        run: |
+          docker run -v ${{ github.workspace }}:/workspace -w /workspace node:${{ matrix.node-version }} npm test
+
+      - name: Install dependencies for CentOS
+        if: matrix.os == 'centos'
+        run: |
+          docker run -v ${{ github.workspace }}:/workspace -w /workspace node:${{ matrix.node-version }} npm install
+
+      - name: Run tests for CentOS
+        if: matrix.os == 'centos'
+        run: |
+          docker run -v ${{ github.workspace }}:/workspace -w /workspace node:${{ matrix.node-version }} npm test
