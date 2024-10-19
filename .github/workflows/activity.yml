@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest  # ใช้ runner ที่มีอยู่
     strategy:
       matrix:
-        os: [debian:latest, centos:latest, ubuntu:latest]  # รวม OS ที่ต้องการทดสอบ
+        os: [debian-latest, centos-latest, ubuntu-latest]  # รวม OS ที่ต้องการทดสอบ
         node-version: [18, 20, 22]
 
     steps:
