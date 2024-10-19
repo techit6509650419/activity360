@@ -1,4 +1,4 @@
-name: Node.js CI
+name: activity
 
 on:
   push:
@@ -12,7 +12,7 @@ jobs:
     
     strategy:
       matrix:
-        os: [debian-11, centos-latest]  # ระบบปฏิบัติการที่ต้องการทดสอบ
+        os: [ubuntu-latest, debian-latest, centos-latest]  # ระบบปฏิบัติการที่ต้องการทดสอบ
         node-version: [18.x, 20.x, 22.x]  # เวอร์ชันของ Node.js ที่ต้องการทดสอบ
 
     steps:
@@ -28,6 +28,12 @@ jobs:
       - name: Install dependencies
         run: |
           if [[ "${{ matrix.os }}" == "ubuntu-latest" || "${{ matrix.os }}" == "debian-latest" ]]; then
+            if [[ "${{ matrix.os }}" == "debian-latest" ]]; then
+              curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.5/install.sh | bash
+              source ~/.nvm/nvm.sh
+              nvm install ${{ matrix.node-version }}
+              nvm use ${{ matrix.node-version }}
+            fi
             npm ci  # ติดตั้ง dependencies สำหรับ Ubuntu และ Debian
           else
             sudo yum install -y nodejs npm  # ติดตั้ง Node.js และ npm สำหรับ CentOS
