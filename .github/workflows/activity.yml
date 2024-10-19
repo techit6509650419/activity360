@@ -1,0 +1,38 @@
+name: Node.js Application Test
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, debian-latest, centos-latest]
+        node-version: [18, 20, 22]
+    
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Install dependencies
+        run: |
+          if [ ${{ matrix.os }} == 'ubuntu-latest' ] || [ ${{ matrix.os }} == 'debian-latest' ]; then
+            npm ci
+          else
+            sudo yum install -y nodejs npm
+            npm ci
+          fi
+
+      - name: Run tests
+        run: npm test
