@@ -1,55 +1,22 @@
-name: Node.js CI
-
-on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
-
+name: automated test
+on: [push, pull_request]
 jobs:
-  build:
-    runs-on: ubuntu-latest  # Use Ubuntu for the main job
-
+  math-test:
+    runs-on: ubuntu-latest
     strategy:
-      matrix:
-        os: [ubuntu, debian, centos]  # Specify the OS types
-        node-version: [18.x, 20.x, 22.x]  # Specify Node.js versions
-
+        matrix:
+            node-version: [18.x, 20.x, 22.x]
+            distribution: ['ubuntu:latest', 'centos:latest', 'debian:latest']
+    container: ${{matrix.distribution}}
     steps:
-      - name: Check out the code
-        uses: actions/checkout@v4
-
-      - name: Set up Node.js for Ubuntu
-        if: matrix.os == 'ubuntu'
+      - run: echo "checking os info..."
+      - run: cat /etc/*-release
+      - uses: actions/checkout@v4
+      - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node-version }}
-          cache: 'npm'
-
-      - name: Install dependencies for Ubuntu
-        if: matrix.os == 'ubuntu'
-        run: npm ci
-
-      - name: Run tests for Ubuntu
-        if: matrix.os == 'ubuntu'
-        run: npm test
-
-      - name: Install dependencies for Debian
-        if: matrix.os == 'debian'
-        run: |
-          docker run -v ${{ github.workspace }}:/workspace -w /workspace node:${{ matrix.node-version }} npm install
-
-      - name: Run tests for Debian
-        if: matrix.os == 'debian'
-        run: |
-          docker run -v ${{ github.workspace }}:/workspace -w /workspace node:${{ matrix.node-version }} npm test
-
-      - name: Install dependencies for CentOS
-        if: matrix.os == 'centos'
-        run: |
-          docker run -v ${{ github.workspace }}:/workspace -w /workspace node:${{ matrix.node-version }} npm install
-
-      - name: Run tests for CentOS
-        if: matrix.os == 'centos'
-        run: |
-          docker run -v ${{ github.workspace }}:/workspace -w /workspace node:${{ matrix.node-version }} npm test
+            node-version: ${{ matrix.node-version }}
+            cache: 'npm'
+      - run: npm ci
+      - run: npm run build --if-present
+      - run: npm test
