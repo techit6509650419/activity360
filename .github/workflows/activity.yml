@@ -1,4 +1,4 @@
-name: Activity
+name: Node.js CI
 
 on: [push, pull_request]
 
@@ -19,11 +19,15 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
-          
-      - name: Install dependencies
-        run: |
-          if [[ "$RUNNER_OS" == "Windows" ]]; then npm install --legacy-peer-deps; else npm ci; fi
-      
+
+      - name: Install dependencies on Windows
+        if: runner.os == 'Windows'
+        run: npm install --legacy-peer-deps
+
+      - name: Install dependencies on Linux/MacOS
+        if: runner.os != 'Windows'
+        run: npm ci
+
       - name: Build the project (if applicable)
         run: npm run build --if-present
 
