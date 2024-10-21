@@ -1,22 +1,31 @@
-name: automated test
+name: Activity
+
 on: [push, pull_request]
+
 jobs:
-  math-test:
-    runs-on: ubuntu-latest
+  build:
     strategy:
-        matrix:
-            node-version: [18.x, 20.x, 22.x]
-            distribution: ['ubuntu:latest', 'centos:latest', 'debian:latest']
-    container: ${{matrix.distribution}}
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]  # Specify the operating systems
+        node-version: [18.x, 20.x, 22.x]  # Specify the Node.js versions
+    runs-on: ${{ matrix.os }}
+
     steps:
-      - run: echo "checking os info..."
-      - run: cat /etc/*-release
-      - uses: actions/checkout@v4
-      - name: Use Node.js ${{ matrix.node-version }}
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js ${{ matrix.node-version }} on ${{ matrix.os }}
         uses: actions/setup-node@v4
         with:
-            node-version: ${{ matrix.node-version }}
-            cache: 'npm'
-      - run: npm ci
-      - run: npm run build --if-present
-      - run: npm test
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: |
+          if [[ "$RUNNER_OS" == "Windows" ]]; then npm install --legacy-peer-deps; else npm ci; fi
+      
+      - name: Build the project (if applicable)
+        run: npm run build --if-present
+
+      - name: Run tests
+        run: npm test
