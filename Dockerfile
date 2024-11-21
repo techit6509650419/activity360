@@ -1,24 +1,19 @@
-# Use Node.js LTS (Long Term Support) as base image
-FROM node:20-slim
+FROM node:lastest
 
-# Set working directory
-WORKDIR /app
+# Create app directory
+WORKDIR /usr/src/app
 
-# Install system dependencies
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-    git \
-    && rm -rf /var/lib/apt/lists/*
-
-# Copy package files
+# Install app dependencies
+# A wildcard is used to ensure both package.json AND package-lock.json are copied
+# where available (npm@5+)
 COPY package*.json ./
 
-# Install project dependencies
-RUN npm install -g jest && \
-    npm install
+RUN npm install
+# If you are building your code for production
+# RUN npm ci --only=production
 
-# Copy project files
+# Bundle app source
 COPY . .
 
-# Run tests as default command
-CMD ["npm", "test"]
+EXPOSE 3000
+CMD [ "node", "index.js" ]             
