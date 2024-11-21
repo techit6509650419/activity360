@@ -1,20 +1,24 @@
-# Use an official Node.js runtime as the base image
-FROM node:16
+# Use Node.js LTS (Long Term Support) as base image
+FROM node:20-slim
 
-# Set the working directory inside the container
-WORKDIR /usr/src/app
+# Set working directory
+WORKDIR /app
 
-# Copy package files first for dependency installation
+# Install system dependencies
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy package files
 COPY package*.json ./
 
-# Install dependencies
-RUN npm ci --only=production
+# Install project dependencies
+RUN npm install -g jest && \
+    npm install
 
-# Copy the rest of the application source code
+# Copy project files
 COPY . .
 
-# Expose the app's port
-EXPOSE 3000
-
-# Start the application
-CMD ["node", "index.js"]
+# Run tests as default command
+CMD ["npm", "test"]
